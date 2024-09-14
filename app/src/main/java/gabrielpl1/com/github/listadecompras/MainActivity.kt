@@ -33,9 +33,18 @@ class MainActivity : AppCompatActivity() {
         val editText = findViewById<EditText>(R.id.editText)
 
         button.setOnClickListener {
-            val item = ItemModel(editText.text.toString())
-
+            if (editText.text.isEmpty()) {
+                editText.error = "Preencha um valor"
+                return@setOnClickListener
+            }
+            val item = ItemModel(
+                name = editText.text.toString(),
+                onRemove = {
+                    itemsAdapter.removeItem(it)
+                }
+            )
             itemsAdapter.addItem(item)
+            editText.text.clear()
         }
     }
 }
