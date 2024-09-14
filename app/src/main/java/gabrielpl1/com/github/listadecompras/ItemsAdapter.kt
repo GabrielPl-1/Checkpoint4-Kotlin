@@ -7,57 +7,39 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-// Adapter responsável por exibir uma lista de itens no RecyclerView
-class ItemsAdapter : RecyclerView.Adapter<ItemsAdapter.ItemViewHolder>() {
 
-    // Lista de itens que será exibida no RecyclerView
-    private var items = listOf<ItemModel>()
+    class ItemsAdapter(private val onItemRemoved: (ItemModel) -> Unit) :
+        RecyclerView.Adapter<ItemsAdapter.ItemViewHolder>() {
 
-    // ViewHolder representa os elementos de UI individuais dentro da RecyclerView
-    class ItemViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
-        // Referência ao TextView no layout do item
-        val textView = view.findViewById<TextView>(R.id.textViewItem)
+        private var items = listOf<ItemModel>()
+            inner class ItemViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+                val textView = view.findViewById<TextView>(R.id.textViewItem)
 
-        // Referência ao botão de imagem no layout do item
-        val button = view.findViewById<ImageButton>(R.id.imageButton)
+                val button = view.findViewById<ImageButton>(R.id.imageButton)
+                fun bind(item: ItemModel) {
+                    textView.text = item.name
 
-        // Função que "vincula" os dados do item às views
-        fun bind(item: ItemModel) {
-            // Define o texto do TextView com o nome do item
-            textView.text = item.name
+                    button.setOnClickListener {
 
-            // Define uma ação de clique no botão de imagem
-            button.setOnClickListener {
-                // Chama a função de remover associada ao item quando o botão é clicado
-                item.onRemove(item)
+                        onItemRemoved(item)
+                    }
+                }
+            }
+            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
+                val view = LayoutInflater.from(parent.context).inflate(R.layout.item_layout, parent, false)
+                return ItemViewHolder(view)
+            }
+
+
+            override fun getItemCount(): Int = items.size
+            override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
+                val item = items[position]
+                holder.bind(item)
+            }
+
+            fun updateItems(newItems: List<ItemModel>) {
+                items = newItems
+                notifyDataSetChanged()
             }
         }
-    }
-
-    // Método chamado para inflar o layout de cada item e criar o ViewHolder
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
-        // Inflando o layout do item a partir do XML e criando o ViewHolder correspondente
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_layout, parent, false)
-        return ItemViewHolder(view)
-    }
-
-    // Retorna o número de itens na lista
-    override fun getItemCount(): Int = items.size
-
-    // Método chamado para associar um item específico da lista ao ViewHolder
-    override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
-        // Obtém o item da posição atual
-        val item = items[position]
-        // Vincula os dados do item ao ViewHolder
-        holder.bind(item)
-    }
-
-    // Função para atualizar a lista de itens e notificar o RecyclerView das mudanças
-    fun updateItems(newItems: List<ItemModel>) {
-        // Atualiza a lista de itens
-        items = newItems
-        // Notifica o RecyclerView que os dados foram modificados, para que ele seja redesenhado
-        notifyDataSetChanged()
-    }
-}

@@ -5,8 +5,13 @@ package gabrielpl1.com.github.listadecompras
  * Ele recebe uma string que irá funcionar como nosso construtor
  * A função OnRemove irá remover um item da lista
  */
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity
 data class ItemModel(
-    val id: Int,
-    val name: String,
-    val onRemove: (ItemModel) -> Unit
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val name: String
 )

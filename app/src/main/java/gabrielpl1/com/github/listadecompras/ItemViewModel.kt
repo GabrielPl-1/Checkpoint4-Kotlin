@@ -1,36 +1,67 @@
 package gabrielpl1.com.github.listadecompras
 
+
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.viewModelScope
+import androidx.room.Room
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-// ViewModel que gerencia a lista de itens e expõe os dados para a UI através de LiveData
-class ItemsViewModel : ViewModel() {
 
-    // Lista mutável que contém os itens internamente
-    private var items = mutableListOf<ItemModel>()
+    class ItemsViewModel(application: Application) : AndroidViewModel(application) {
 
-    // LiveData que a UI observa para atualizar automaticamente quando a lista de itens mudar
-    val itemsLiveData = MutableLiveData<List<ItemModel>>()
+        private val itemDao: ItemDao
+        val itemsLiveData: LiveData<List<ItemModel>>
 
-    // Função que adiciona um novo item à lista
-    fun addItem(name: String) {
-        // Cria um novo ItemModel com um id e define a função de remoção (onRemove)
-        val item = ItemModel(
-            id = 0, // ID pode ser gerado dinamicamente em uma implementação mais avançada
-            name = name,
-            onRemove = ::removeItem // Passa a referência da função removeItem
-        )
+        /**
+         * Este método é responsável por adicionar um novo item à lista.
+         * Ele cria um novo ItemModel e o adiciona à lista de itens.
+         *
+         * @param name O nome do item a ser adicionado.
+         */
 
-        // Verifica se o item já não está na lista antes de adicionar
-        if (!items.contains(item)) {
-            items.add(item) // Adiciona o item à lista
-            itemsLiveData.value = items // Atualiza o valor do LiveData para notificar os observadores
-        }
-    }
+            init {
+                val database = Room.databaseBuilder(
+                    getApplication(),
+                    ItemDatabase::class.java,
+                    "items_database"
+                ).build()
 
-    // Função privada que remove um item da lista
-    private fun removeItem(item: ItemModel) {
-        items.remove(item) // Remove o item da lista
-        itemsLiveData.value = items // Atualiza o LiveData para refletir a remoção
-    }
-}
+                /**
+                 * Este bloco de código é responsável por adicionar um novo item à lista.
+                 * Ele cria um novo ItemModel e o adiciona à lista de itens.
+                 */
+
+                itemDao = database.itemDao()
+                itemsLiveData = itemDao.getAll()
+            }
+
+            /**
+             * Observa as alterações na lista de itens na ViewModel.
+             * Quando a lista de itens é alterada, atualiza o ItemsAdapter com a nova lista.
+             */
+
+                fun addItem(item: String) {
+                    viewModelScope.launch(Dispatchers.IO) {
+                        val newItem = ItemModel(name = item)
+                        itemDao.insert(newItem)
+                    }
+                }
+
+                /**
+                 * Este método é responsável por remover um item da lista.
+                 * Ele remove o item da lista de itens.
+                 *
+                 * @param item O item a ser removido.
+                 */
+
+                    fun removeItem(item: ItemModel) {
+                        viewModelScope.launch(Dispatchers.IO) {
+                            itemDao.delete(item)
+                        }
+                    }
+                }
