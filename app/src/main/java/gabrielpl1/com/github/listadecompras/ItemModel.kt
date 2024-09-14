@@ -6,6 +6,7 @@ package gabrielpl1.com.github.listadecompras
  * A função OnRemove irá remover um item da lista
  */
 data class ItemModel(
+    val id: Int,
     val name: String,
-    val onRemove: (ItemModel) -> Unit = { _ -> }
+    val onRemove: (ItemModel) -> Unit
 )
